@@ -2198,10 +2198,10 @@ class ServerClient(VsphereClient):
         total_assigned = vm_cpus
         for vm in host.vm:
             try:
-                total_assigned += int(vm.summary.config.numCp)
+                total_assigned += int(vm.summary.config.numCpu)
             except ValueError:
                 logger().warning("Incorrect value for numCpu. It is "
-                                 "{0} but integer value is expected".format(vm.summary.config.numCp))
+                                 "{0} but integer value is expected".format(vm.summary.config.numCpu))
         return total_threads / total_assigned
 
     def host_memory_usage_ratio(self, host, new_mem):
