@@ -2864,6 +2864,46 @@ class StorageClient(VsphereClient):
         logger().debug("Task info: \n%s." % prepare_for_log(vars(task)))
         self._wait_for_task(task)
 
+    def delete_storage_by_id(self, vm_id, backing_object_id):
+        logger().debug("Entering delete storage procedure.")
+        vm = self._get_obj_by_id(vim.VirtualMachine, vm_id)
+        logger().debug("VM info: \n%s." % prepare_for_log(vars(vm)))
+        if self.is_server_suspended(vm):
+            raise NonRecoverableError(
+                "Error during trying to delete storage: invalid VM state - "
+                "'suspended'"
+            )
+
+        virtual_device_spec = vim.vm.device.VirtualDeviceSpec()
+        virtual_device_spec.operation =\
+            vim.vm.device.VirtualDeviceSpec.Operation.remove
+        virtual_device_spec.fileOperation =\
+            vim.vm.device.VirtualDeviceSpec.FileOperation.destroy
+
+        devices = []
+
+        device_to_delete = None
+
+        for device in vm.config.hardware.device:
+            if isinstance(device, vim.vm.device.VirtualDisk)\
+                    and device.backing.backingObjectId == backing_object_id:
+                device_to_delete = device
+
+        if device_to_delete is None:
+            raise NonRecoverableError(
+                'Error during trying to delete storage: storage not found')
+
+        virtual_device_spec.device = device_to_delete
+
+        devices.append(virtual_device_spec)
+
+        config_spec = vim.vm.ConfigSpec()
+        config_spec.deviceChange = devices
+
+        task = vm.obj.Reconfigure(spec=config_spec)
+        logger().debug("Task info: \n%s." % prepare_for_log(vars(task)))
+        self._wait_for_task(task)
+
     def get_storage(self, vm_id, storage_file_name):
         logger().debug("Entering get storage procedure.")
         vm = self._get_obj_by_id(vim.VirtualMachine, vm_id)

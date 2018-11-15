@@ -34,6 +34,7 @@ from vsphere_plugin_common.constants import (
     VSPHERE_STORAGE_SCSI_ID,
     VSPHERE_STORAGE_FILE_NAME,
     VSPHERE_STORAGE_RUNTIME_PROPERTIES,
+    VSPHERE_STORAGE_BACKING_OBJECT_ID
 )
 from cloudify_vsphere.utils.feedback import prepare_for_log
 
@@ -72,7 +73,7 @@ def create(storage_client, storage, use_existing_resource=False):
     vm_name = connected_vms[0]['name']
     if use_existing_resource:
         for fname in [
-            VSPHERE_STORAGE_SCSI_ID, VSPHERE_STORAGE_FILE_NAME, 'storage_size'
+            VSPHERE_STORAGE_SCSI_ID, VSPHERE_STORAGE_BACKING_OBJECT_ID, 'storage_size'
         ]:
             if fname not in storage:
                 raise NonRecoverableError(
@@ -137,21 +138,38 @@ def delete(storage_client, **kwargs):
 
     vm_id = ctx.instance.runtime_properties[VSPHERE_STORAGE_VM_ID]
     vm_name = ctx.instance.runtime_properties[VSPHERE_STORAGE_VM_NAME]
-    storage_file_name = \
-        ctx.instance.runtime_properties[VSPHERE_STORAGE_FILE_NAME]
-    ctx.logger.info(
-        "Deleting storage {file} from {vm}".format(
-            file=storage_file_name,
-            vm=vm_name,
+    backing_object_id = \
+        ctx.instance.runtime_properties[VSPHERE_STORAGE_BACKING_OBJECT_ID]
+    if backing_object_id != None:
+        ctx.logger.info(
+            "Deleting storage {volume} from {vm}".format(
+                volume=backing_object_id,
+                vm=vm_name,
+            )
         )
-    )
-    storage_client.delete_storage(vm_id, storage_file_name)
-    ctx.logger.info(
-        "Successfully deleted storage {file} from {vm}".format(
-            file=storage_file_name,
-            vm=vm_name,
+        storage_client.delete_storage_by_id(vm_id, backing_object_id)
+        ctx.logger.info(
+            "Successfully deleted storage {volume} from {vm}".format(
+                volume=backing_object_id,
+                vm=vm_name,
+            )
         )
-    )
+    else:
+        storage_file_name = \
+            ctx.instance.runtime_properties[VSPHERE_STORAGE_FILE_NAME]
+        ctx.logger.info(
+            "Deleting storage {file} from {vm}".format(
+                file=storage_file_name,
+                vm=vm_name,
+            )
+        )
+        storage_client.delete_storage(vm_id, storage_file_name)
+        ctx.logger.info(
+            "Successfully deleted storage {file} from {vm}".format(
+                file=storage_file_name,
+                vm=vm_name,
+            )
+        )
     remove_runtime_properties(VSPHERE_STORAGE_RUNTIME_PROPERTIES, ctx)
 
 
