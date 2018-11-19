@@ -86,6 +86,7 @@ def create(storage_client, storage, use_existing_resource=False):
                 name=storage['name']
             )
         )
+        storage_client.get_storage_info(vm_id)
     else:
         ctx.logger.info(
             "Creating new volume on VM '{vm}' with name '{name}' and size: "

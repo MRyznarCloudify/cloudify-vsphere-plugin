@@ -2918,6 +2918,17 @@ class StorageClient(VsphereClient):
                     return device
         return None
 
+    def get_storage_info(self, vm_id):
+        logger().debug("Entering get storage procedure.")
+        vm = self._get_obj_by_id(vim.VirtualMachine, vm_id)
+        logger().debug("VM info: \n%s." % prepare_for_log(vars(vm)))
+        if vm:
+            for device in vm.config.hardware.device:
+                logger().debug("vm.config.hardware.device: {0}".format(str(device)))
+                logger().debug("vm.config.hardware.device.backing: {0}".format(str(device.backing)))
+                logger().debug("vm.config.hardware.device.backing.fileName: {0}".format(str(device.backing.fileName)))
+                logger().debug("vm.config.hardware.device.backing.backingObjectId: {0}".format(str(device.backing.backingObjectId)))
+
     def resize_storage(self, vm_id, storage_filename, storage_size):
         logger().debug("Entering resize storage procedure.")
         vm = self._get_obj_by_id(vim.VirtualMachine, vm_id)
