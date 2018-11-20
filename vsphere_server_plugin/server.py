@@ -243,7 +243,7 @@ def start(
 
     server_obj = None
     if use_existing_resource and "name" in server:
-        get_existing_server_details()
+        server_obj = get_existing_server_details()
     else:
         for key in ["cpus", "memory", "template"]:
             if not server.get(key):
@@ -666,6 +666,7 @@ def get_existing_server_details(
     ctx.instance.runtime_properties[NETWORKS] = \
         server_client.get_vm_networks(server_obj)
     ctx.instance.runtime_properties['use_existing_resource'] = True
+    return server_obj
 
 
 def get_vm_name(ctx, server, os_family):
