@@ -243,7 +243,7 @@ def start(
 
     server_obj = None
     if use_existing_resource and "name" in server:
-        server_obj = get_existing_server_details()
+        server_obj = _get_existing_server_details(ctx,server_client,server)
     else:
         for key in ["cpus", "memory", "template"]:
             if not server.get(key):
@@ -658,6 +658,14 @@ def get_existing_server_details(
         server_client,
         server
         ):
+    _get_existing_server_details(ctx,server_client,server)
+
+
+def _get_existing_server_details(
+        ctx,
+        server_client,
+        server
+        ):
     server_obj = server_client.get_server_by_name(server.get("name"))
     if server_obj is None:
         raise NonRecoverableError('Have not found preexisting vm')
@@ -667,7 +675,6 @@ def get_existing_server_details(
         server_client.get_vm_networks(server_obj)
     ctx.instance.runtime_properties['use_existing_resource'] = True
     return server_obj
-
 
 def get_vm_name(ctx, server, os_family):
     # VM name may be at most 15 characters for Windows.
