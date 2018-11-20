@@ -243,14 +243,10 @@ def start(
 
     server_obj = None
     if use_existing_resource and "name" in server:
-        server_obj = server_client.get_server_by_name(server.get("name"))
-        if server_obj is None:
-            raise NonRecoverableError('Have not found preexisting vm')
-        ctx.instance.runtime_properties[VSPHERE_SERVER_ID] = server_obj.id
-        ctx.instance.runtime_properties['name'] = server_obj.name
-        ctx.instance.runtime_properties[NETWORKS] = \
-            server_client.get_vm_networks(server_obj)
-        ctx.instance.runtime_properties['use_existing_resource'] = True
+        get_existing_server_details(ctx,
+            server_client,
+            server
+            )
     else:
         for key in ["cpus", "memory", "template"]:
             if not server.get(key):
@@ -656,6 +652,23 @@ def resize(ctx, server_client, server, os_family):
     else:
         raise NonRecoverableError(
             "Server resize parameters should be specified.")
+
+
+@op
+@with_server_client
+def get_existing_server_details(
+        ctx,
+        server_client,
+        server
+        ):
+    server_obj = server_client.get_server_by_name(server.get("name"))
+    if server_obj is None:
+        raise NonRecoverableError('Have not found preexisting vm')
+    ctx.instance.runtime_properties[VSPHERE_SERVER_ID] = server_obj.id
+    ctx.instance.runtime_properties['name'] = server_obj.name
+    ctx.instance.runtime_properties[NETWORKS] = \
+        server_client.get_vm_networks(server_obj)
+    ctx.instance.runtime_properties['use_existing_resource'] = True
 
 
 def get_vm_name(ctx, server, os_family):
