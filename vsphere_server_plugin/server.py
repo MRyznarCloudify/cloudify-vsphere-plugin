@@ -243,10 +243,7 @@ def start(
 
     server_obj = None
     if use_existing_resource and "name" in server:
-        get_existing_server_details(ctx,
-            server_client,
-            server
-            )
+        get_existing_server_details()
     else:
         for key in ["cpus", "memory", "template"]:
             if not server.get(key):
