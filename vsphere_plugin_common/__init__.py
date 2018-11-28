@@ -1392,6 +1392,7 @@ class ServerClient(VsphereClient):
             allowed_datastores=allowed_datastores,
         )
         ctx.instance.runtime_properties['hypervisor_hostname'] = host.name
+        ctx.instance.runtime_properties['cluster_name'] = host.parent.name
         logger().debug(
             'Using host {host} and datastore {ds} for deployment.'.format(
                 host=host.name,
